@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="d5c08ad9-b2f1-474b-afc2-f789b64c0222" name="baloncestistas" url="http://127.0.0.1/baloncestistas">
+        <fileTransfer host="127.0.0.1" port="2222" rootFolder="/var/www/baloncestistas" accessType="SFTP">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" />
+          </advancedOptions>
+          <option name="port" value="2222" />
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>

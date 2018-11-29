@@ -6,13 +6,13 @@ require_once "ConsLibrosModel.php";
 class LibroHandlerModel
 {
 
-    public static function getLibro($id)
+    public static function getLibro($id, $query_string=null)
     {
         $listaLibros = null;
 
         $db = DatabaseModel::getInstance();
         $db_connection = $db->getConnection();
-
+        $query = null;
 
         //IMPORTANT: we have to be very careful about automatic data type conversions in MySQL.
         //For example, if we have a column named "cod", whose type is int, and execute this query:
@@ -25,23 +25,36 @@ class LibroHandlerModel
         $valid = self::isValid($id);
 
         //If the $id is valid or the client asks for the collection ($id is null)
-        if ($valid === true || $id == null) {
+        if ($valid === true || $id == null ) {
             $query = "SELECT " . \ConstantesDB\ConsLibrosModel::COD . ","
                 . \ConstantesDB\ConsLibrosModel::TITULO . ","
                 . \ConstantesDB\ConsLibrosModel::PAGS . " FROM " . \ConstantesDB\ConsLibrosModel::TABLE_NAME;
-
-
-            if ($id != null) {
-                $query = $query . " WHERE " . \ConstantesDB\ConsLibrosModel::COD . " = ?";
+            if($query_string == null){
+                if ($id != null) {
+                    $query = $query . " WHERE " . \ConstantesDB\ConsLibrosModel::COD . " = ?";
+                }
+            }else{
+                if(isset($query_string['minpag'])||isset($query_string['maxpag'])){
+                    //select con las dos, primero min y luego max
+                    $query = $query . " AND ";
+                }else{
+                    if(!isset($query_string['minpag'])||isset($query_string['maxpag'])){
+                        //Select solo con la maxima
+                    }else{
+                        if(isset($query_string['minpag'])||!isset($query_string['maxpag'])){
+                            //Select solo con la minima
+                        }
+                    }
+                }
             }
 
-            $prep_query = $db_connection->prepare($query);
 
-            //IMPORTANT: If we do not want to expose our primary keys in the URIS,
-            //we can use a function to transform them.
-            //For example, we can use hash_hmac:
-            //http://php.net/manual/es/function.hash-hmac.php
-            //In this example we expose primary keys considering pedagogical reasons
+
+
+
+
+            //--------------------------------------------------------
+            $prep_query = $db_connection->prepare($query);
 
             if ($id != null) {
                 $prep_query->bind_param('s', $id);
@@ -50,33 +63,22 @@ class LibroHandlerModel
             $prep_query->execute();
             $listaLibros = array();
 
-            //IMPORTANT: IN OUR SERVER, I COULD NOT USE EITHER GET_RESULT OR FETCH_OBJECT,
-            // PHP VERSION WAS OK (5.4), AND MYSQLI INSTALLED.
-            // PROBABLY THE PROBLEM IS THAT MYSQLND DRIVER IS NEEDED AND WAS NOT AVAILABLE IN THE SERVER:
-            // http://stackoverflow.com/questions/10466530/mysqli-prepared-statement-unable-to-get-result
-
             $prep_query->bind_result($cod, $tit, $pag);
             while ($prep_query->fetch()) {
                 $tit = utf8_encode($tit);
                 $libro = new LibroModel($cod, $tit, $pag);
                 $listaLibros[] = $libro;
             }
-
-//            $result = $prep_query->get_result();
-//            for ($i = 0; $row = $result->fetch_object(LibroModel::class); $i++) {
-//
-//                $listaLibros[$i] = $row;
-//            }
         }
         $db_connection->close();
 
         return $listaLibros;
     }
 
-    //returns true if $id is a valid id for a book
-    //In this case, it will be valid if it only contains
-    //numeric characters, even if this $id does not exist in
-    // the table of books
+    /*returns true if $id is a valid id for a book
+    In this case, it will be valid if it only contains
+    numeric characters, even if this $id does not exist in
+     the table of books */
     public static function isValid($id)
     {
         $res = false;
@@ -89,60 +91,74 @@ class LibroHandlerModel
 
     public static function postLibro($libro)
     {
-        $listaLibros = null;
+        $filas = 0;
 
         $db = DatabaseModel::getInstance();
         $db_connection = $db->getConnection();
 
+        $query = "INSERT INTO libros (titulo, numpag) VALUES (?,?)";
 
+        $prep_query = $db_connection->prepare($query);
+
+        $prep_query->bind_param("si",  $libro->titulo, $libro->numpag);
+
+        $prep_query->execute();
+
+        $filas = $prep_query->affected_rows;
+
+        $db_connection->close();
+
+        return $filas;
+    }
+
+    public static function deleteLibro($id){
+
+        $db = DatabaseModel::getInstance();
+        $db_connection = $db->getConnection();
+        $filasAfectadas = 0;
+
+
+        $valid = self::isValid($id);
 
         //If the $id is valid or the client asks for the collection ($id is null)
-        if ($valid === true || $id == null) {
-            $query = "SELECT " . \ConstantesDB\ConsLibrosModel::COD . ","
-                . \ConstantesDB\ConsLibrosModel::TITULO . ","
-                . \ConstantesDB\ConsLibrosModel::PAGS . " FROM " . \ConstantesDB\ConsLibrosModel::TABLE_NAME;
+        if ($valid === true ) {
+            $query = "DELETE FROM " . \ConstantesDB\ConsLibrosModel::TABLE_NAME.
+                " WHERE " . \ConstantesDB\ConsLibrosModel::COD . " = ?";
 
-
-            if ($id != null) {
-                $query = $query . " WHERE " . \ConstantesDB\ConsLibrosModel::COD . " = ?";
-            }
 
             $prep_query = $db_connection->prepare($query);
 
-            //IMPORTANT: If we do not want to expose our primary keys in the URIS,
-            //we can use a function to transform them.
-            //For example, we can use hash_hmac:
-            //http://php.net/manual/es/function.hash-hmac.php
-            //In this example we expose primary keys considering pedagogical reasons
-
-            if ($id != null) {
-                $prep_query->bind_param('s', $id);
-            }
+            $prep_query->bind_param('i', $id);
 
             $prep_query->execute();
-            $listaLibros = array();
 
-            //IMPORTANT: IN OUR SERVER, I COULD NOT USE EITHER GET_RESULT OR FETCH_OBJECT,
-            // PHP VERSION WAS OK (5.4), AND MYSQLI INSTALLED.
-            // PROBABLY THE PROBLEM IS THAT MYSQLND DRIVER IS NEEDED AND WAS NOT AVAILABLE IN THE SERVER:
-            // http://stackoverflow.com/questions/10466530/mysqli-prepared-statement-unable-to-get-result
+            $filasAfectadas = $prep_query->affected_rows;
 
-            $prep_query->bind_result($cod, $tit, $pag);
-            while ($prep_query->fetch()) {
-                $tit = utf8_encode($tit);
-                $libro = new LibroModel($cod, $tit, $pag);
-                $listaLibros[] = $libro;
-            }
-
-//            $result = $prep_query->get_result();
-//            for ($i = 0; $row = $result->fetch_object(LibroModel::class); $i++) {
-//
-//                $listaLibros[$i] = $row;
-//            }
         }
         $db_connection->close();
 
-        return $listaLibros;
+        return $filasAfectadas;
+    }
+
+    public static function putLibro($libro){
+        $filas = 0;
+
+        $db = DatabaseModel::getInstance();
+        $db_connection = $db->getConnection();
+
+        $query = "UPDATE libros SET titulo = ?, numpag = ? WHERE ". \ConstantesDB\ConsLibrosModel::COD . " = ?";
+
+        $prep_query = $db_connection->prepare($query);
+
+        $prep_query->bind_param("sii",  $libro->titulo, $libro->numpag, $libro->codigo);
+
+        $prep_query->execute();
+
+        $filas = $prep_query->affected_rows;
+
+        $db_connection->close();
+
+        return $filas;
     }
 
 }

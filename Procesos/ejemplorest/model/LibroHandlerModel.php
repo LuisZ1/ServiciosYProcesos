@@ -13,14 +13,8 @@ class LibroHandlerModel
         $db = DatabaseModel::getInstance();
         $db_connection = $db->getConnection();
         $query = null;
-
-        //IMPORTANT: we have to be very careful about automatic data type conversions in MySQL.
-        //For example, if we have a column named "cod", whose type is int, and execute this query:
-        //SELECT * FROM table WHERE cod = "3yrtdf"
-        //it will be converted into:
-        //SELECT * FROM table WHERE cod = 3
-        //That's the reason why I decided to create isValid method,
-        //I had problems when the URI was like libro/2jfdsyfsd
+        $minpag = null;
+        $maxpag = null;
 
         $valid = self::isValid($id);
 
@@ -34,30 +28,42 @@ class LibroHandlerModel
                     $query = $query . " WHERE " . \ConstantesDB\ConsLibrosModel::COD . " = ?";
                 }
             }else{
-                if(isset($query_string['minpag'])||isset($query_string['maxpag'])){
+                if(isset($query_string['minpag']) && isset($query_string['maxpag'])){
+                    $minpag = $query_string['minpag'];
+                    $maxpag = $query_string['maxpag'];
                     //select con las dos, primero min y luego max
-                    $query = $query . " AND ";
+                    $query = $query . " WHERE ". \ConstantesDB\ConsLibrosModel::PAGS ." BETWEEN ".$minpag." AND ".$maxpag;
                 }else{
-                    if(!isset($query_string['minpag'])||isset($query_string['maxpag'])){
+                    if(!isset($query_string['minpag']) && isset($query_string['maxpag'])){
                         //Select solo con la maxima
+                        $maxpag = $query_string['maxpag'];
+                        $query = $query . " WHERE ". \ConstantesDB\ConsLibrosModel::PAGS ." < ".$maxpag;
                     }else{
-                        if(isset($query_string['minpag'])||!isset($query_string['maxpag'])){
+                        if(isset($query_string['minpag']) && !isset($query_string['maxpag'])){
                             //Select solo con la minima
+                            $minpag = $query_string['minpag'];
+                            $query = $query . " WHERE ". \ConstantesDB\ConsLibrosModel::PAGS ." > ".$minpag;
                         }
                     }
                 }
             }
-
-
-
-
-
 
             //--------------------------------------------------------
             $prep_query = $db_connection->prepare($query);
 
             if ($id != null) {
                 $prep_query->bind_param('s', $id);
+                if (isset($query_string['minpag']) && isset($query_string['maxpag'])) {
+                    $prep_query->bind_param('sii', $id, $minpag, $maxpag);
+                } else {
+                    if (!isset($query_string['minpag']) && isset($query_string['maxpag'])) {
+                        $prep_query->bind_param('si', $id, $maxpag);
+                    } else {
+                        if (isset($query_string['minpag']) && !isset($query_string['maxpag'])) {
+                            $prep_query->bind_param('si', $id, $minpag);
+                        }
+                    }
+                }
             }
 
             $prep_query->execute();
@@ -72,7 +78,7 @@ class LibroHandlerModel
         }
         $db_connection->close();
 
-        return $listaLibros;
+        return sizeof($listaLibros) == 1 ? $listaLibros[0] : $listaLibros;
     }
 
     /*returns true if $id is a valid id for a book

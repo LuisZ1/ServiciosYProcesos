@@ -1,0 +1,68 @@
+GET http://biblioteca.devel:8181/libro?minpag=1&maxpag=1000&minpag=1&maxpag=1000
+Accept: */*
+Cache-Control: no-cache
+
+<> 2018-11-29T064300.200.html
+
+###
+
+GET http://biblioteca.devel:8181/libro?minpag=1&maxpag=1000
+Accept: */*
+Cache-Control: no-cache
+
+###
+
+GET http://biblioteca.devel:8181/libro
+Accept: */*
+Cache-Control: no-cache
+
+###
+
+GET http://biblioteca.devel:8181/libro
+Accept: */*
+Cache-Control: no-cache
+
+###
+
+GET http://www.biblioteca.devel:8181/libro
+Accept: */*
+Cache-Control: no-cache
+
+###
+
+GET http://biblioteca.devel:8181/libro
+Accept: */*
+Cache-Control: no-cache
+
+###
+
+GET http://biblioteca.devel:8181/libro
+Accept: */*
+Cache-Control: no-cache
+
+###
+
+GET http://biblioteca.devel:8181/libro
+Accept: */*
+Cache-Control: no-cache
+
+###
+
+GET http://biblioteca.devel:8181/libro
+Accept: */*
+Cache-Control: no-cache
+
+###
+
+GET http://biblioteca.devel:8181/libro
+Accept: */*
+Cache-Control: no-cache
+
+###
+
+GET http://libros.api:8080/libro
+Accept: */*
+Cache-Control: no-cache
+
+###
+

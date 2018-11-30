@@ -6,12 +6,13 @@ class LibroModel implements JsonSerializable
     private $titulo;
     private $codigo;
     private $numpag;
+//    private $capitulos;
 
-    public function __construct($cod,$tit,$pag)
+    public function __construct($cod, $tit, $pag)
     {
-        $this->codigo=$cod;
-        $this->titulo=$tit;
-        $this->numpag=$pag;
+        $this->codigo = $cod;
+        $this->titulo = $tit;
+        $this->numpag = $pag;
     }
 
     /**
@@ -33,8 +34,9 @@ class LibroModel implements JsonSerializable
         );
     }
 
-    public function __sleep(){
-        return array('titulo' , 'codigo' , 'numpag' );
+    public function __sleep()
+    {
+        return array('titulo', 'codigo', 'numpag');
     }
 
 
@@ -85,5 +87,7 @@ class LibroModel implements JsonSerializable
     {
         $this->numpag = $numpag;
     }
+
+
 
 }

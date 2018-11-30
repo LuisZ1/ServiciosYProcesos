@@ -1,4 +1,4 @@
-package pruebaRetrofitJava;
+package pruebaRetrofitJava.Libro;
 import retrofit2.Call;
 import retrofit2.http.*;
 
@@ -25,6 +25,5 @@ public interface LibroInterface {
 	@Headers({"Content-type:application/json"})
 	@PUT("/libro/")
 	Call<Void> putLibro(@Body Libro libro);
-
 
 }

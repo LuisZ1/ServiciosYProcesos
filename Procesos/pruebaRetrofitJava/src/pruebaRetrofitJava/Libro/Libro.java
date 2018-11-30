@@ -1,4 +1,4 @@
-package pruebaRetrofitJava;
+package pruebaRetrofitJava.Libro;
 
 public class Libro {
 	private int codigo;

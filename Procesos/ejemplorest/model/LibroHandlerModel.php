@@ -1,14 +1,15 @@
 <?php
 
 require_once "ConsLibrosModel.php";
+require_once "LibroConCapitulos.php";
 
 
 class LibroHandlerModel
 {
 
-    public static function getLibro($id, $query_string=null)
+    public static function getLibro($id, $query_string = null)
     {
-        $listaLibros = null;
+        $listaLibrosCap = null;
 
         $db = DatabaseModel::getInstance();
         $db_connection = $db->getConnection();
@@ -19,30 +20,30 @@ class LibroHandlerModel
         $valid = self::isValid($id);
 
         //If the $id is valid or the client asks for the collection ($id is null)
-        if ($valid === true || $id == null ) {
+        if ($valid === true || $id == null) {
             $query = "SELECT " . \ConstantesDB\ConsLibrosModel::COD . ","
                 . \ConstantesDB\ConsLibrosModel::TITULO . ","
                 . \ConstantesDB\ConsLibrosModel::PAGS . " FROM " . \ConstantesDB\ConsLibrosModel::TABLE_NAME;
-            if($query_string == null){
+            if ($query_string == null) {
                 if ($id != null) {
                     $query = $query . " WHERE " . \ConstantesDB\ConsLibrosModel::COD . " = ?";
                 }
-            }else{
-                if(isset($query_string['minpag']) && isset($query_string['maxpag'])){
+            } else {
+                if (isset($query_string['minpag']) && isset($query_string['maxpag'])) {
                     $minpag = $query_string['minpag'];
                     $maxpag = $query_string['maxpag'];
                     //select con las dos, primero min y luego max
-                    $query = $query . " WHERE ". \ConstantesDB\ConsLibrosModel::PAGS ." BETWEEN ".$minpag." AND ".$maxpag;
-                }else{
-                    if(!isset($query_string['minpag']) && isset($query_string['maxpag'])){
+                    $query = $query . " WHERE " . \ConstantesDB\ConsLibrosModel::PAGS . " BETWEEN " . $minpag . " AND " . $maxpag;
+                } else {
+                    if (!isset($query_string['minpag']) && isset($query_string['maxpag'])) {
                         //Select solo con la maxima
                         $maxpag = $query_string['maxpag'];
-                        $query = $query . " WHERE ". \ConstantesDB\ConsLibrosModel::PAGS ." < ".$maxpag;
-                    }else{
-                        if(isset($query_string['minpag']) && !isset($query_string['maxpag'])){
+                        $query = $query . " WHERE " . \ConstantesDB\ConsLibrosModel::PAGS . " < " . $maxpag;
+                    } else {
+                        if (isset($query_string['minpag']) && !isset($query_string['maxpag'])) {
                             //Select solo con la minima
                             $minpag = $query_string['minpag'];
-                            $query = $query . " WHERE ". \ConstantesDB\ConsLibrosModel::PAGS ." > ".$minpag;
+                            $query = $query . " WHERE " . \ConstantesDB\ConsLibrosModel::PAGS . " > " . $minpag;
                         }
                     }
                 }
@@ -67,18 +68,42 @@ class LibroHandlerModel
             }
 
             $prep_query->execute();
-            $listaLibros = array();
+            $listaLibrosCap = array();
+
 
             $prep_query->bind_result($cod, $tit, $pag);
+
             while ($prep_query->fetch()) {
                 $tit = utf8_encode($tit);
-                $libro = new LibroModel($cod, $tit, $pag);
-                $listaLibros[] = $libro;
+
+                $query = "SELECT " . \ConsCapitulosModel::ID_CAP . "," . \ConsCapitulosModel::PAG_INI . ","
+                    . \ConsCapitulosModel::PAG_FIN . " FROM " . \ConsCapitulosModel::TABLE_NAME
+                    . " WHERE codigoLibro = ?";
+
+                $prep_query->prepare($query);
+                $prep_query->bind_param('i', $id);
+                $prep_query->execute();
+
+                $capitulos = array();
+                $result = $prep_query->get_result();
+
+                $prep_query->bind_result($idCap, $ipag, $fpag);
+                while ($row = $result->fetch_assoc()) {
+                    $capitulo = new CapituloModel($id, $idCap, $ipag, $fpag);
+                    $capitulos[] = $capitulo;
+                }
+
+                $libro = new LibroModel ($cod, $tit, $pag);
+                $LibroCap = new LibroConCapitulos();
+                $LibroCap -> setLibro($libro);
+                $LibroCap -> setCapitulos($capitulos);
+                $listaLibrosCap[] = $LibroCap;
             }
         }
         $db_connection->close();
 
-        return sizeof($listaLibros) == 1 ? $listaLibros[0] : $listaLibros;
+        return $listaLibrosCap;
+//        return sizeof($listaLibrosCap) == 1 ? $listaLibrosCap[0] : $listaLibrosCap;
     }
 
     /*returns true if $id is a valid id for a book
@@ -106,7 +131,7 @@ class LibroHandlerModel
 
         $prep_query = $db_connection->prepare($query);
 
-        $prep_query->bind_param("si",  $libro->titulo, $libro->numpag);
+        $prep_query->bind_param("si", $libro->titulo, $libro->numpag);
 
         $prep_query->execute();
 
@@ -117,7 +142,8 @@ class LibroHandlerModel
         return $filas;
     }
 
-    public static function deleteLibro($id){
+    public static function deleteLibro($id)
+    {
 
         $db = DatabaseModel::getInstance();
         $db_connection = $db->getConnection();
@@ -127,8 +153,8 @@ class LibroHandlerModel
         $valid = self::isValid($id);
 
         //If the $id is valid or the client asks for the collection ($id is null)
-        if ($valid === true ) {
-            $query = "DELETE FROM " . \ConstantesDB\ConsLibrosModel::TABLE_NAME.
+        if ($valid === true) {
+            $query = "DELETE FROM " . \ConstantesDB\ConsLibrosModel::TABLE_NAME .
                 " WHERE " . \ConstantesDB\ConsLibrosModel::COD . " = ?";
 
 
@@ -146,17 +172,18 @@ class LibroHandlerModel
         return $filasAfectadas;
     }
 
-    public static function putLibro($libro){
+    public static function putLibro($libro)
+    {
         $filas = 0;
 
         $db = DatabaseModel::getInstance();
         $db_connection = $db->getConnection();
 
-        $query = "UPDATE libros SET titulo = ?, numpag = ? WHERE ". \ConstantesDB\ConsLibrosModel::COD . " = ?";
+        $query = "UPDATE libros SET titulo = ?, numpag = ? WHERE " . \ConstantesDB\ConsLibrosModel::COD . " = ?";
 
         $prep_query = $db_connection->prepare($query);
 
-        $prep_query->bind_param("sii",  $libro->titulo, $libro->numpag, $libro->codigo);
+        $prep_query->bind_param("sii", $libro->titulo, $libro->numpag, $libro->codigo);
 
         $prep_query->execute();
 

@@ -1,4 +1,4 @@
-package pruebaRetrofitJava;
+package pruebaRetrofitJava.Pedidos;
 
 import okhttp3.Headers;
 import retrofit2.Call;
@@ -8,19 +8,20 @@ import retrofit2.Response;
 import java.util.ArrayList;
 import java.util.List;
 
-
-public class LibroListCallback implements Callback<List<Libro>> {
+/**
+ * Created by lzumarraga on 30/11/18.
+ */
+public class PedidoListCallback implements Callback<List<Pedido>> {
 
     @Override
-    public void onFailure(Call<List<Libro>> arg0, Throwable arg1) {
-        System.out.println("ERRORRRRR");
+    public void onFailure(Call<List<Pedido>> arg0, Throwable arg1) {
+        System.out.println("ERROR");
     }
 
     @Override
-    public void onResponse(Call<List<Libro>> arg0, Response<List<Libro>> resp) {
+    public void onResponse(Call<List<Pedido>> arg0, Response<List<Pedido>> resp) {
 
-
-        ArrayList<Libro> lista;
+        ArrayList<Pedido> lista;
         String contentType;
         int code;
         String message;
@@ -34,10 +35,8 @@ public class LibroListCallback implements Callback<List<Libro>> {
         message = resp.message();
         isSuccesful = resp.isSuccessful();
 
-        for(Libro libro : lista){
-            System.out.println(libro.getCodigo() + " " + libro.getTitulo() + " " + libro.getNumpag());
+        for(Pedido pedido : lista){
+            System.out.println(pedido.getId() /*+ " " + pedido.getProductos().toString() */);
         }
     }
-
-
 }

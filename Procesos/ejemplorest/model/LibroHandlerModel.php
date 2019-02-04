@@ -102,8 +102,8 @@ class LibroHandlerModel
         }
         $db_connection->close();
 
-        return $listaLibrosCap;
-//        return sizeof($listaLibrosCap) == 1 ? $listaLibrosCap[0] : $listaLibrosCap;
+//        return $listaLibrosCap;
+        return sizeof($listaLibrosCap) == 1 ? $listaLibrosCap[0] : $listaLibrosCap;
     }
 
     /*returns true if $id is a valid id for a book

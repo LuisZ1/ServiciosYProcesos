@@ -2,7 +2,7 @@
 <project version="4">
   <component name="WebServers">
     <option name="servers">
-      <webServer id="613c5c46-a750-4722-bb3d-57e863087b64" name="libros.api" url="http://libros.api">
+      <webServer id="613c5c46-a750-4722-bb3d-57e863087b64" name="libros.api" url="http://libros.api:8080">
         <fileTransfer host="127.0.0.1" port="2222" rootFolder="/var/www/libros.api" accessType="SFTP">
           <advancedOptions>
             <advancedOptions dataProtectionLevel="Private" />

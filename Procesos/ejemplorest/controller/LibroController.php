@@ -3,10 +3,9 @@
 require_once "Controller.php";
 
 
-class LibroController extends Controller
-{
-    public function manageGetVerb(Request $request)
-    {
+class LibroController extends Controller {
+
+    public function manageGetVerb(Request $request) {
 
         $listaLibros = null;
         $id = null;
@@ -40,8 +39,7 @@ class LibroController extends Controller
 
     }
 
-    public function managePostVerb(Request $request)
-    {
+    public function managePostVerb(Request $request) {
         $libro = $request->getBodyParameters();
 
         $response = null;
@@ -56,16 +54,13 @@ class LibroController extends Controller
             $code = '404';
         }
 
-//        $response = new Response($code, null, $listaLibros, $request->getAccept());
-//        $response->generate();
 
         $response = new Response($code, null, null, $request->getAccept());
         $response->generate();
 
     }
 
-    public function manageDeleteVerb(Request $request)
-    {
+    public function manageDeleteVerb(Request $request) {
         $id = null;
         $response = null;
         $code = null;
@@ -87,8 +82,7 @@ class LibroController extends Controller
         $response->generate();
     }
 
-    public function managePutVerb(Request $request)
-    {
+    public function managePutVerb(Request $request) {
         $libro = $request->getBodyParameters();
 
         $response = null;

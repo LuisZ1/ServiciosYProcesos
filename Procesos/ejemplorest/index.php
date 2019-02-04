@@ -70,6 +70,7 @@ $controller_name = ucfirst($url_elements[1]) . 'Controller';
 if (class_exists($controller_name)) {
     $controller = new $controller_name();
     $action_name = 'manage' . ucfirst(strtolower($verb)) . 'Verb';
+
     $controller->$action_name($req);
     //$result = $controller->$action_name($req);
     //print_r($result);

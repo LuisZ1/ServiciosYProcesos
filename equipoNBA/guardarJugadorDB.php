@@ -10,9 +10,11 @@ $conn = new mysqli($servername, $username, $password, $dbname);
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
-
-$sql = "INSERT INTO `Jugadores`( `Nombre`, `Apellidos`, `Posicion`, `ID_Equipo`) 
-        VALUES ([value-1],[value-2],[value-3],[value-4])";
+/*
+$sql = "INSERT INTO `Jugadores`( `Nombre`, `Apellidos`, `ID_Equipo`) 
+        VALUES (fistname,lastname,id_Equipo)";*/
+$sql = "INSERT INTO Jugadores (Nombre, Apellidos, ID_Equipo)
+        VALUES ('".$_POST["fistname"]."','".$_POST["lastname"]."','".$_POST["id_Equipo"]."')";
 
 if ($conn->query($sql) === TRUE) {
     echo "Jugador guardado papi";
